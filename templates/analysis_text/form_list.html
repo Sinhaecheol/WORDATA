@@ -1,0 +1,3 @@
+{% for form in forms %}
+    <p><a href="{% url 'analysis_text:dataframe' form.id %}">{{ form }}</a></p>
+{% endfor %}

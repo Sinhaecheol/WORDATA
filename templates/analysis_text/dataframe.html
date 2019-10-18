@@ -1,0 +1,24 @@
+<table>
+    <tr>
+        <th>번호</th>
+        <th>단어</th>
+        <th>품사</th>
+        <th>뜻</th>
+        <th>예문</th>
+        <th>해석</th>
+    </tr>
+    <tr>    
+        {% for i in len(dataFrame['단어'].to_list()) %}
+        <td>{{dataFrame.loc[i].to_list()[0]}}</td>
+        <td>{{dataFrame.loc[i].to_list()[1]}}</td>
+        <td>{{dataFrame.loc[i].to_list()[2]}}</td>
+        <td>{{dataFrame.loc[i].to_list()[3]}}</td>
+        <td>{{dataFrame.loc[i].to_list()[4]}}</td>
+        <td>{{dataFrame.loc[i].to_list()[5]}}</td>    
+        {% endfor %}
+    </tr>
+</table>
+
+
+
+<p><a href="{% url 'main:home' %}">홈으로</a><p>
