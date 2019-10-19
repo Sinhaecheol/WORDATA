@@ -9,6 +9,9 @@ class Dataframe(models.Model):
     sentence_interpretation = models.TextField()
     word_of_frequency = models.IntegerField(default=0)
 
+    def __str__(self):
+        return self.word
+
 class Userinput(models.Model):
     file = models.FileField(upload_to='documents/') #파일을 저장하는 공간
     frequency = models.IntegerField(default=0)

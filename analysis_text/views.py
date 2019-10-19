@@ -273,9 +273,23 @@ def form_list(request):
 
 def dataframe(request, form_id):
     form = get_object_or_404(Userinput, id=form_id)
-    dataframe = wordata(form.file, form.frequency, form.word_except, form.times)
-    return render(request, 'analysis_text/dataframe.html', {'dataframe': dataframe})
+    dataFrame = wordata(form.file, form.frequency, form.word_except, form.times)
+    for i in range(len(dataFrame['단어'].to_list())):
+        db_dataframe = Dataframe(
+        word = dataFrame.loc[i].to_list()[0],
+        part_of_speech = dataFrame.loc[i].to_list()[1],
+        meaning = dataFrame.loc[i].to_list()[2],
+        example_sentence = dataFrame.loc[i].to_list()[3],
+        sentence_interpretation = dataFrame.loc[i].to_list()[4],
+        word_of_frequency = dataFrame.loc[i].to_list()[5],
+        )
+        db_dataframe.save()
 
-#def wordlist(request):
- #   words = Dataframe.objects.all()
-  #  return render(request, 'analysis_text/wordlist.html', {'words': words})
+    words = Dataframe.objects.all()
+    return render(request, 'analysis_text/dataframe.html', {'words': words})
+
+def wordlist(request):
+    words = Dataframe.objects.all()
+    return render(request, 'analysis_text/wordlist.html', {'words': words})
+
+# def wordlist_detail(request, list_id):
