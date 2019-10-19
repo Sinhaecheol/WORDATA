@@ -1,5 +1,6 @@
 <table>
     <tr>
+        <th>번호</th>
         <th>단어</th>
         <th>품사</th>
         <th>뜻</th>
@@ -8,7 +9,8 @@
         <th>빈도수</th>
     </tr>
     {% for word in words %}
-    <tr> 
+    <tr>
+        <td>{{word.numbering}}</td>
         <td>{{word.word}}</td>
         <td>{{word.part_of_speech}}</td>
         <td>{{word.meaning}}</td>

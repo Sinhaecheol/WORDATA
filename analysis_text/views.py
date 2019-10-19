@@ -1,8 +1,6 @@
-from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Userinput, Dataframe
 from .forms import UserinputForm
-import sqlite3
 
 # import modules
 # read data
@@ -112,7 +110,10 @@ def wordata(file, n, wordExcept = False, lenth = False):
     for text in textHeap:
         TokenizedWords += tokenizer.tokenize(text)
     print("*문서 안의 전체 단어 개수: {}" .format(len(TokenizedWords))) 
-        
+    
+    for file in FileName:
+        removeFolder(file)
+
     #불용어 제거
 
     #불용어 load
@@ -121,11 +122,17 @@ def wordata(file, n, wordExcept = False, lenth = False):
     stop_words = set(stopwords.words('english')) # NLTK에서 기본적으로 정의하고 있는 불용어
     stop_words = stop_words | set(pd.Series(errorWords[0]).to_list())
 
-    # 초등800 단어 제거 True일 시 실행됨.
-    if wordExcept != False:
-        elementWord = pd.read_csv('초등800.csv', header = None)
+    # 과정별 단어 제거
+    if wordExcept == 1:
+        elementWord = pd.read_csv("C:\\Users\\haecheol\\Desktop\\WORDATA\\errorword\\초등.csv", header = None)
         stop_words = stop_words | set(pd.Series(elementWord[0]).to_list())
         print('초등 영단어 800 제거 성공')
+    elif wordExcept == 2:
+        middleWord = pd.read_csv("C:\\Users\\haecheol\\Desktop\\WORDATA\\errorword\\중등2000.csv", header = None)
+        stop_words = stop_words | set(pd.Series(middleWord[0]).to_list())
+    elif wordExcept == 3:
+        highWord = pd.read_csv("C:\\Users\\haecheol\\Desktop\\WORDATA\\errorword\\고등3000.csv", header = None)
+        stop_words = stop_words | set(pd.Series(highWord[0]).to_list())
 
     np_words = np.array(TokenizedWords) # Tokenized words를 numpy array type으로 형 변환
     delete_index = [] # 불용어 index번호를 저장할 list
@@ -204,30 +211,24 @@ def wordata(file, n, wordExcept = False, lenth = False):
     print('{}개 이상의 빈도수 단어를 추출합니다.'.format(overNum))
     print("최종 단어 수 : {}" .format(removedOverlabWords['Word'].count()))
     
-    
-    ##################지인이 코드 #########################
     print('*단어장 형성을 시작합니다.')
-    
-    
-    #lenth 파라미터를 받음
+  
+   #lenth 파라미터를 받음
     if lenth == False:
-        TestWords = removedOverlabWords['Word'].to_list()
+        WordsLenth = removedOverlabWords['Word'].to_list()
     else:
         lenth -= 1
-        TestWords = removedOverlabWords['Word'].loc[:lenth].to_list()
-    
-    word_url=[] #단어 검색 후 첫번째 url
-    mainwords=[] #단어 뜻 리스트
-    word_exam=[] #예문 리스트
-    exam_inp=[] #예문 해석 리스트
-    word_part=[] #예문 품사 리스트
+        WordsLenth = removedOverlabWords['Word'].loc[:lenth].to_list()
 
-    
+    word_url=[] #단어 검색 후 첫번째 url
+    dataFrame = pd.DataFrame(columns=['번호','단어', '품사', '뜻','예문', '해석','빈도수'])
+    word_number = 1
     dictlink='https://endic.naver.com' #네이버사전 홈페이지 url
 
-    #1->2번째 페이지 넘기기
-    for i in range(len(TestWords)): #테스트 단어 갯수만큼 반복
-        url="https://endic.naver.com/search.nhn?sLn=kr&query="+TestWords[i] #단어검색 뒤에 영단어를 붙혀 url 넘겨줌
+
+
+    for i in range(len(WordsLenth)): #테스트 단어 갯수만큼 반복
+        url="https://endic.naver.com/search.nhn?sLn=kr&query="+ WordsLenth[i] #단어검색 뒤에 영단어를 붙혀 url 넘겨줌
         res=requests.get(url).text #url을 requests한걸 text로 가져와 res 에 저장
         soup=BeautifulSoup(res,"lxml") #res를 beautiful soup에 넘겨줌
 
@@ -238,25 +239,66 @@ def wordata(file, n, wordExcept = False, lenth = False):
                     word_url.append(word) #합친 url을 word_url의 리스트에 넣음
                     break #첫번째 word_url만 뽑아서 멈춤
 
-    for i in range(len(TestWords)): #단어갯수 만큼 반복
-        response=requests.get(word_url[i]).text #url넘기고 요청하여 텍스트로 넘김
-        soup = BeautifulSoup(response, "lxml") # lxml을 이용하여 beautifulsoup으로 넘겨줌
-        words = soup.select('span.fnt_k06') 
-        examples=soup.select('p.bg span.fnt_e07._ttsText')
-        inperprets=soup.select('dd.first p span.fnt_k10')
-        parts=soup.select('span.fnt_syn')
-        mainwords.append(words[0].get_text().strip()) #단어의 첫번째만 태그 제거하여 리스트에 넘김
-        word_exam.append(examples[0].get_text().strip())
-        exam_inp.append(inperprets[0].get_text().strip())
-        word_part.append(parts[0].get_text().strip())
-        
-        ############ DataFrame으로 생성############
-    dataFrame = pd.DataFrame(columns=['단어', '품사', '뜻','예문', '해석','빈도수'])
-    for i in range(len(TestWords)):
-        dataFrame.loc[i] = [removedOverlabWords['Word'].loc[i], word_part[i], mainwords[i], word_exam[i], exam_inp[i], removedOverlabWords['value count'].loc[i]]
 
+
+    selecter = [
+        ['span.fnt_k06',
+         'p.bg span.fnt_e07._ttsText',
+         'dd.first p span.fnt_k10',
+         'span.fnt_syn',
+         '#content > div.word_view > div.tit > h3'],
+        ['#zoom_content > div:nth-child(6) > dl > dt.first.mean_on.meanClass > em > span.fnt_k06',
+         '#zoom_content > div:nth-child(6) > dl > dd:nth-child(2) > p.bg > span',
+         '#zoom_content > div:nth-child(6) > dl > dd:nth-child(2) > p:nth-child(2) > span',
+         '#ajax_hrefContent > li:nth-child(2) > a',
+         '#content > div.word_view > div.tit > h3'],
+        ['#zoom_content > div:nth-child(7) > dl > dt > em > span.fnt_k06',
+        '#zoom_content > div:nth-child(7) > dl > dd.first > p.bg > span',
+        '#zoom_content > div:nth-child(7) > dl > dd.first > p:nth-child(2) > span',
+        '#ajax_hrefContent > li:nth-child(3) > a',
+        '#content > div.word_view > div.tit > h3']]
+
+
+    def makeVoca(dataFrame, soup, selecter, word_name, number, freq):
+        global word_url
+
+        words = soup.select(selecter[0]) #단어 뜻
+        if len(words)==0:
+            return
+
+        examples = soup.select(selecter[1]) #예문
+        if len(examples)==0:
+            example = None
+        else:
+            example=examples[0].get_text().strip()
+
+        inperprets = soup.select(selecter[2]) #예문 해석
+        if len(inperprets) == 0:
+            interpretation = None
+        else:
+            interpretation=inperprets[0].get_text().strip()
+        parts = soup.select(selecter[3]) #품사
+        if len(parts) == 0:
+            part = None
+        else:
+            part=parts[0].get_text().strip()
+
+        voca = soup.select(selecter[4])#두번째 단어
+        Words = voca[0].get_text().strip()
+        meaning=words[0].get_text().strip() #단어의 첫번째만 태그 제거하여 리스트에 넘김
+
+        dataFrame.loc[len(dataFrame)] = [number, word_name, part, meaning, example, interpretation, freq]
+        return dataFrame
+
+    for j in range(len(WordsLenth)): #단어갯수 만큼 반복
+        response=requests.get(word_url[j]).text #url넘기고 요청하여 텍스트로 넘김
+        soup_2 = BeautifulSoup(response, "lxml") # lxml을 이용하여 beautifulsoup으로 넘겨줌
+        for i in range(len(selecter)):
+            makeVoca(dataFrame, soup_2, selecter[i], WordsLenth[j], word_number, removedOverlabWords['value count'].loc[j] )
+        word_number += 1  
+    print("***단어장 형성 완료***")
     return dataFrame
-
+    
 def userinputform(request):
     if request.method == 'POST':
         form = UserinputForm(request.POST, request.FILES)
@@ -276,12 +318,13 @@ def dataframe(request, form_id):
     dataFrame = wordata(form.file, form.frequency, form.word_except, form.times)
     for i in range(len(dataFrame['단어'].to_list())):
         db_dataframe = Dataframe(
-        word = dataFrame.loc[i].to_list()[0],
-        part_of_speech = dataFrame.loc[i].to_list()[1],
-        meaning = dataFrame.loc[i].to_list()[2],
-        example_sentence = dataFrame.loc[i].to_list()[3],
-        sentence_interpretation = dataFrame.loc[i].to_list()[4],
-        word_of_frequency = dataFrame.loc[i].to_list()[5],
+        numbering = dataFrame.loc[i].to_list()[0],
+        word = dataFrame.loc[i].to_list()[1],
+        part_of_speech = dataFrame.loc[i].to_list()[2],
+        meaning = dataFrame.loc[i].to_list()[3],
+        example_sentence = dataFrame.loc[i].to_list()[4],
+        sentence_interpretation = dataFrame.loc[i].to_list()[5],
+        word_of_frequency = dataFrame.loc[i].to_list()[6],
         )
         db_dataframe.save()
 
