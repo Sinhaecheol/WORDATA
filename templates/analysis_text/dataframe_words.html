@@ -1,3 +1,4 @@
+<!-- 사용자가 업로드한 파일의 단어리스트가 저장되는 곳 nav바 안에서 나의단어를 클릭했을때-->
 <table>
     <tr>
         <th>번호</th>
@@ -11,6 +12,7 @@
     {% for word in dataframe_words %}
     <tr>
         <td>{{word.numbering}}</td>
+        {% if %}
         <td>{{word.word}}</td>
         <td>{{word.part_of_speech}}</td>
         <td>{{word.meaning}}</td>

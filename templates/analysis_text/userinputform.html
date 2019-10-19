@@ -1,6 +1,10 @@
+<!--유저가 폼 입력하는 공간 메인페이지에서 nav바에서 유저입력부분-->
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
-  {{ form.as_p }}
+  <p>{{ form.file }}</p>
+  <p>{{ form.frequency }}</p>
+  <p>{{ form.word_except }}</p>
+  <p>{{ form.times }}</p>
   <button type="submit">Upload</button>
 </form>
  

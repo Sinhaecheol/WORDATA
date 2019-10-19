@@ -33,7 +33,6 @@ def getZip(zipFile):
     unzip.extractall('zipfolder')
     unzip.close()
     path = os.getcwd()
-#     path = re.sub(path[path.rindex('\h')+1:], '', zipFile)
     path += '\zipfolder'
     print("*Zip 해제 완료")
     return path
@@ -224,8 +223,6 @@ def wordata(file, n, wordExcept = False, lenth = False):
         WordsLenth = removedOverlabWords['Word'].loc[:lenth].to_list()
 
     word_url=[] #단어 검색 후 첫번째 url
-    dataFrame = pd.DataFrame(columns=['번호','단어', '품사', '뜻','예문', '해석','빈도수'])
-    word_number = 1
     dictlink='https://endic.naver.com' #네이버사전 홈페이지 url
 
 
@@ -262,8 +259,15 @@ def wordata(file, n, wordExcept = False, lenth = False):
         '#content > div.word_view > div.tit > h3']]
 
 
-    def makeVoca(dataFrame, soup, selecter, word_name, number, freq):
+    def makeVoca(temp_num, dataFrame, soup, selecter, word_name, number, freq):
         global word_url
+
+        if temp_num == 0:
+            pass
+        else:
+            if number == dataFrame.loc[len(dataFrame)-1][0]:
+                word_name = None
+                freq = None
 
         words = soup.select(selecter[0]) #단어 뜻
         if len(words)==0:
@@ -293,15 +297,21 @@ def wordata(file, n, wordExcept = False, lenth = False):
         dataFrame.loc[len(dataFrame)] = [number, word_name, part, meaning, example, interpretation, freq]
         return dataFrame
 
+    temp_num = 0
+    dataFrame = pd.DataFrame(columns=['번호','단어', '품사', '뜻','예문', '해석','빈도수'])
+    word_number = 1
+
     for j in range(len(WordsLenth)): #단어갯수 만큼 반복
         response=requests.get(word_url[j]).text #url넘기고 요청하여 텍스트로 넘김
         soup_2 = BeautifulSoup(response, "lxml") # lxml을 이용하여 beautifulsoup으로 넘겨줌
         for i in range(len(selecter)):
-            makeVoca(dataFrame, soup_2, selecter[i], WordsLenth[j], word_number, removedOverlabWords['value count'].loc[j] )
+            makeVoca(temp_num, dataFrame, soup_2, selecter[i], WordsLenth[j], word_number, removedOverlabWords['value count'].loc[j] )
+            temp_num = 1
         word_number += 1  
     print("***단어장 형성 완료***")
     return dataFrame
-    
+
+#사용자가 파일을 업로드하는 함수
 def userinputform(request):
     if request.method == 'POST':
         form = UserinputForm(request.POST, request.FILES)
@@ -312,14 +322,17 @@ def userinputform(request):
         form = UserinputForm()
     return render(request, 'analysis_text/userinputform.html', {'form': form})
 
+#업로드한 파일의 목록을 보여주는 함수
 def form_list(request):
     forms = Userinput.objects.all()
     return render(request, 'analysis_text/form_list.html', {'forms': forms})
 
+#업로드한 데이터를 전처리하고 완성된 데이터로 크롤링을 하는 함수
+#크롤링이 완료되면 단어장을 형성한다.
 def dataframe(request, form_id):
     form = get_object_or_404(Userinput, id=form_id)
     prewords = Dataframe.objects.all()
-    prewords.delete()
+    prewords.delete() #가장 최근에 분석한 단어만 남긴다.
 
     dataFrame = wordata(form.file, form.frequency, form.word_except, form.times)
     for i in range(len(dataFrame['단어'].to_list())):
@@ -334,20 +347,23 @@ def dataframe(request, form_id):
         )
         db_dataframe.save()
 
-    words = Dataframe.objects.all()
+    words = Dataframe.objects.all()        
     return render(request, 'analysis_text/dataframe.html', {'words': words})
 
 def wordlist(request):
     return render(request, 'analysis_text/wordlist.html')
 
+#수능 파일을 분석한 단어를 보여주는 함수
 def suneung_words(request):
     suneung_words = Suneung.objects.all()
     return render(request, 'analysis_text/suneung_words.html', {'suneung_words': suneung_words})
 
+#평가원 파일을 분석한 단어를 보여주는 함수
 def pyeonggawon_words(request):
     pyeonggawon_words = Pyeonggawon.objects.all()
     return render(request, 'analysis_text/pyeonggawon_words.html', {'pyeonggawon_words': pyeonggawon_words})
 
+#사용자가 업로드한 파일에서 분석한 단어를 보여주는 함수
 def dataframe_words(request):
     dataframe_words = Dataframe.objects.all()
     return render(request, 'analysis_text/dataframe_words.html', {'dataframe_words': dataframe_words})
