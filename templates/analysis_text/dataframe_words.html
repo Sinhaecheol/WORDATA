@@ -1,0 +1,24 @@
+<table>
+    <tr>
+        <th>번호</th>
+        <th>단어</th>
+        <th>품사</th>
+        <th>뜻</th>
+        <th>예문</th>
+        <th>해석</th>
+        <th>빈도수</th>
+    </tr>
+    {% for word in dataframe_words %}
+    <tr>
+        <td>{{word.numbering}}</td>
+        <td>{{word.word}}</td>
+        <td>{{word.part_of_speech}}</td>
+        <td>{{word.meaning}}</td>
+        <td>{{word.example_sentence}}</td>
+        <td>{{word.sentence_interpretation}}</td>
+        <td>{{word.word_of_frequency}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p><a href="{% url 'analysis_text:wordlist' %}">다른 단어 리스트를 보고싶다면??</a><p>

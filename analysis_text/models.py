@@ -21,5 +21,27 @@ class Userinput(models.Model):
 
     def __str__(self):
         return self.file.path
+
+class Suneung(models.Model):
+    numbering = models.IntegerField(default=0)
+    word = models.CharField(max_length=50)
+    part_of_speech = models.CharField(max_length=20)
+    meaning = models.CharField(max_length=40)
+    example_sentence = models.TextField(blank=True, null=True)
+    sentence_interpretation = models.TextField(blank=True, null=True)
+    word_of_frequency = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.word
     
-    
+class Pyeonggawon(models.Model):
+    numbering = models.IntegerField(default=0)
+    word = models.CharField(max_length=50)
+    part_of_speech = models.CharField(max_length=20)
+    meaning = models.CharField(max_length=40)
+    example_sentence = models.TextField(blank=True, null=True)
+    sentence_interpretation = models.TextField(blank=True, null=True)
+    word_of_frequency = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.word

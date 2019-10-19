@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Userinput, Dataframe
+from .models import *
 from .forms import UserinputForm
 
 # import modules
@@ -114,25 +114,28 @@ def wordata(file, n, wordExcept = False, lenth = False):
     for file in FileName:
         removeFolder(file)
 
-    #불용어 제거
-
     #불용어 load
-    errorWords = pd.read_csv("C:\\Users\\haecheol\\Desktop\\WORDATA\\errorword\\errorWords.csv", header = None)
+    os.chdir(os.getcwd())
+    now_path = os.getcwd()
+    now_path = str(now_path) +'\\errorword'
+    errorWords = pd.read_csv(now_path + "\\errorWords.csv", header = None)
 
     stop_words = set(stopwords.words('english')) # NLTK에서 기본적으로 정의하고 있는 불용어
     stop_words = stop_words | set(pd.Series(errorWords[0]).to_list())
-
+    
     # 과정별 단어 제거
     if wordExcept == 1:
-        elementWord = pd.read_csv("C:\\Users\\haecheol\\Desktop\\WORDATA\\errorword\\초등.csv", header = None)
+        elementWord = pd.read_csv(now_path + "\\초등800.csv", header = None)
         stop_words = stop_words | set(pd.Series(elementWord[0]).to_list())
-        print('초등 영단어 800 제거 성공')
+        print('초등 영단어 제거 성공')
     elif wordExcept == 2:
-        middleWord = pd.read_csv("C:\\Users\\haecheol\\Desktop\\WORDATA\\errorword\\중등2000.csv", header = None)
+        middleWord = pd.read_csv(now_path + "\\중등2000.csv", header = None)
         stop_words = stop_words | set(pd.Series(middleWord[0]).to_list())
+        print('중등 영단어 제거 성공')
     elif wordExcept == 3:
-        highWord = pd.read_csv("C:\\Users\\haecheol\\Desktop\\WORDATA\\errorword\\고등3000.csv", header = None)
+        highWord = pd.read_csv(now_path + "\\고등3000.csv", header = None)
         stop_words = stop_words | set(pd.Series(highWord[0]).to_list())
+        print('고등 영단어 제거 성공')
 
     np_words = np.array(TokenizedWords) # Tokenized words를 numpy array type으로 형 변환
     delete_index = [] # 불용어 index번호를 저장할 list
@@ -315,6 +318,9 @@ def form_list(request):
 
 def dataframe(request, form_id):
     form = get_object_or_404(Userinput, id=form_id)
+    prewords = Dataframe.objects.all()
+    prewords.delete()
+
     dataFrame = wordata(form.file, form.frequency, form.word_except, form.times)
     for i in range(len(dataFrame['단어'].to_list())):
         db_dataframe = Dataframe(
@@ -332,7 +338,16 @@ def dataframe(request, form_id):
     return render(request, 'analysis_text/dataframe.html', {'words': words})
 
 def wordlist(request):
-    words = Dataframe.objects.all()
-    return render(request, 'analysis_text/wordlist.html', {'words': words})
+    return render(request, 'analysis_text/wordlist.html')
 
-# def wordlist_detail(request, list_id):
+def suneung_words(request):
+    suneung_words = Suneung.objects.all()
+    return render(request, 'analysis_text/suneung_words.html', {'suneung_words': suneung_words})
+
+def pyeonggawon_words(request):
+    pyeonggawon_words = Pyeonggawon.objects.all()
+    return render(request, 'analysis_text/pyeonggawon_words.html', {'pyeonggawon_words': pyeonggawon_words})
+
+def dataframe_words(request):
+    dataframe_words = Dataframe.objects.all()
+    return render(request, 'analysis_text/dataframe_words.html', {'dataframe_words': dataframe_words})
