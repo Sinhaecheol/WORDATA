@@ -1,25 +1,87 @@
-<!--단어리스트에서 평가원을 클릭했을 때 나오는 페이지-->
-<table>
-    <tr>
-        <th>번호</th>
-        <th>단어</th>
-        <th>품사</th>
-        <th>뜻</th>
-        <th>예문</th>
-        <th>해석</th>
-        <th>빈도수</th>
-    </tr>
-    {% for word in pyeonggawon_words %}
-    <tr>
-        <td>{{word.numbering}}</td>
-        <td>{{word.word}}</td>
-        <td>{{word.part_of_speech}}</td>
-        <td>{{word.meaning}}</td>
-        <td>{{word.example_sentence}}</td>
-        <td>{{word.sentence_interpretation}}</td>
-        <td>{{word.word_of_frequency}}</td>
-    </tr>
-    {% endfor %}
-</table>
 
-<p><a href="{% url 'analysis_text:wordlist' %}">다른 단어 리스트를 보고싶다면??</a><p>
+
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="contents" style=" background-color: #F6F6F6; margin-top: -55px;">
+    <div class="container">
+        <div class="row" style="display: block; text-align: center;">
+            <div class="uploadResult_info">
+               <h2>&#10003; 단어 순위 보기 &#10003;</h2>
+            </div>
+            <!-- //uploadResult_info -->
+            
+            <div class="word_graph">
+                <div class="graph_img">
+                    <img src="../../static/img/pyeong.png" style="width: 50rem;";>
+                </div>
+            </div>
+            <div class="endWord">
+                <div class="word_user">
+                {% for word in pyeonggawon_words %}
+                    {% if word.numbering != Null %}
+                    <div class="UR_margin"></div>
+                    <div class="UR_box">
+                        <div class="UR_one">
+                            <div class="UR_eng">
+                                <span class="UR_eng_first">{{word.numbering}}&nbsp;</span><span>&nbsp;<span style="font-weight: bold;">{{word.word}}</span></span>
+                            </div>
+                            <div class="UR_fq">
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Freq : {{word.word_of_frequency}}
+                            </div>
+                        </div>
+                        <!-- //UR_one -->
+                        
+                        <div class="UR_two">
+                            <div class="UR_mean">
+                                <span class="UR_mean_first">{{word.part_of_speech}}</span>.<span class="UR_mean_second">&nbsp;{{word.meaning}}</span>
+                            </div>
+                            <div class="UR_ex">
+                                {{word.example_sentence}}
+                            </div>
+                            <div class="UR_exkor">
+                                {{word.sentence_interpretation}}
+                            </div>
+                        </div>
+                        <!-- //UR_two -->
+                        
+                    </div>
+                    <!-- //UR_box -->
+                    {% else%}
+                    <div class="UR_box">
+                        <div class="UR_one">
+                            <div class="UR_eng">
+                                <span class="UR_eng_first">&nbsp;</span><span>&nbsp;</span>
+                            </div>
+                            <div class="UR_fq">
+                                
+                            </div>
+                        </div>
+                        <!-- //UR_one -->
+                        
+                        <div class="UR_two">
+                            <div class="UR_mean">
+                                <span class="UR_mean_first">{{word.part_of_speech}}</span>.<span class="UR_mean_second">&nbsp;{{word.meaning}}</span>
+                            </div>
+                            <div class="UR_ex">
+                                {{word.example_sentence}}
+                            </div>
+                            <div class="UR_exkor">
+                                {{word.sentence_interpretation}}
+                            </div>
+                        </div>
+                        <!-- //UR_two -->
+                        
+                    </div>
+                    <!-- //UR_box -->
+                    {% endif %}
+                {% endfor %}
+                </div>
+                <!-- //word_user -->
+            </div>
+        </div>
+    </div>
+</div>
+<p><a href="{% url 'main:home' %}">다른 단어 리스트를 보고싶다면??</a><p>
+{% endblock %}

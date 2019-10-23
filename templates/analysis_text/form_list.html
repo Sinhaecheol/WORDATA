@@ -1,5 +1,22 @@
 <!--nav바에서 폼리스트 부분-->
+{% extends 'layout.html' %}
 
-{% for form in forms %}
-    <p><a href="{% url 'analysis_text:dataframe' form.id %}">{{ form }}</a></p>
-{% endfor %}
+{% block content %} 
+{% if form %}
+ 
+<div class="contents" style="background: url(../../static/img/analysis_gogo_back04.jpg); background-size: cover; opacity: 0.9;">
+    <div class="container">
+        <div class="row">
+            <div class="analysis">
+               <div>
+                    <div class="gogo">
+                        <a href="{% url 'analysis_text:dataframe' form.id %}"><button type="">분석 바로가기</button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %} 

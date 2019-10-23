@@ -1,25 +1,19 @@
-<!--단어분석이 완료되고 나서 나오는 단어리스트 / 폼리스트에서 파일을 클릭하면 나오는 결과페이지-->
-<table>
-    <tr>
-        <th>번호</th>
-        <th>단어</th>
-        <th>품사</th>
-        <th>뜻</th>
-        <th>예문</th>
-        <th>해석</th>
-        <th>빈도수</th>
-    </tr>
-    {% for word in words %}
-    <tr>
-        <td>{{word.numbering}}</td>
-        <td>{{word.word}}</td>
-        <td>{{word.part_of_speech}}</td>
-        <td>{{word.meaning}}</td>
-        <td>{{word.example_sentence}}</td>
-        <td>{{word.sentence_interpretation}}</td>
-        <td>{{word.word_of_frequency}}</td>
-    </tr>
-    {% endfor %}
-</table>
+{% extends 'layout.html' %}
 
-<p><a href="{% url 'analysis_text:wordlist' %}">다른 단어 리스트를 보고싶다면??</a><p>
+{% block content %}
+
+
+<div class="contents" style="background: url(../../static/img/analysis_gogo_back03.jpg); background-size: cover; opacity: 0.9;">
+    <div class="container">
+        <div class="row">
+            <div class="analysis">
+               <div>
+                    <div class="gogo">
+                            <a href="{% url 'analysis_text:dataframe_words' %}"><button type="">결과 확인</button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

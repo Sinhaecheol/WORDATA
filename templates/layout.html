@@ -1,0 +1,145 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="author" content="wordata">
+    <meta name="description" content="분야별 영어 단어 빈도수를 분석해주는 사이트입니다.">
+    <meta name="keywords" content="wordata, 워다타, 영어단어, 수능단어, 토익, 단어분석, 영어순위">
+    <title>WORDATA</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/swiper.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.css' %}">
+    
+    <!-- 파비콘 -->
+    <link rel="shortcut icon" href="assets/icons/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" href="assets/icons/favicon_72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="96x96" href="assets/icons/favicon_96.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/icons/favicon_144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="192x192" href="assets/icons/favicon_192.png" />
+    
+    <!-- 웹 폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:100,300,400,500,700,900&display=swap&subset=korean" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Do+Hyeon|Jua&display=swap&subset=korean" rel="stylesheet">
+   
+</head>
+<body>
+ 
+ <header id="header">
+    <div class="container">
+        <div class="row">
+            <div class="header clearfix"> 
+                <h1>
+                    <a href="{% url 'main:home' %}">
+                        <h2>WORDATA</h2>
+                    </a>
+                </h1>
+                <nav id="mNav">
+                    <h2 class="ir_so">워다타 전체메뉴</h2>
+                    <a href="#" class="ham"><span></span></a>
+                </nav>
+                <nav class="nav">
+                    <ul class="clearfix">
+                        <li><a href="{% url 'analysis_text:suneung_words' %}">수능특강</a></li>
+                        <li><a href="{% url 'analysis_text:pyeonggawon_words' %}">평가원</a></li>
+                        <li class="myvoca"><a href="{% url 'analysis_text:dataframe_words' %}">나만의 단어장</a></li> <!--dataframe-->
+                        <li><a href="{% url 'main:signup' %}">회원가입</a></li>
+                        <li><a href="{% url 'main:login' %}">로그인</a></li>
+
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div> 
+     
+</header>
+<!-- //header -->
+{% block content %}{% endblock %}
+<!-- footer -->
+<footer id="footer">
+        <div id="footer_sns">
+            <div class="container">
+                <div class="footer_sns">
+                    <ul>
+                        <li class="icon s1"><a href="#"><span class="ir_pm">트위터</span></a></li>
+                        <li class="icon s2"><a href="#"><span class="ir_pm">페이스북</span></a></li>
+                        <li class="icon s3"><a href="https://www.instagram.com/wordataa/?hl=ko" title="워다타 인스타그램"><span class="ir_pm">인스타그램</span></a></li>
+                        <li class="icon s4"><a href="#"><span class="ir_pm">구글 플레이</span></a></li>
+                        <li class="icon s5"><a href="#"><span class="ir_pm">아이폰 앱스토어</span></a></li>
+                    </ul>    
+                    <div class="tel">
+                        <a href="#">ARS <em>010-2271-8184</em></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="footer_infor">
+            <div class="container">
+                <div class="row">
+                    <div class="footer_infor">
+                        <h2>WORDATA</h2>
+                        <ul>
+                            <li><a href="#">서비스 소개</a></li>
+                            <li><a href="#">이용약관</a></li>
+                            <li><a href="#">개인정보처리방침</a></li>
+                            <li><a href="#">고객센터</a></li>
+                            <li><a href="developer.html">워다타 개발자</a></li>
+                        </ul>
+                        <address>
+                            <p>서울특별시 구로구 항동 1-1 성공회대학교<br>서비스 문의: ironhak1106@gmail.com</p>
+                            <p>Copyright 2019 by WORDATA develpoer Inc. All right reserved</p>
+                        </address>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- //footer -->
+
+    <!-- 자바스크립트 라이브러리 -->
+    <script src="{% static 'js/jquery.min_1.12.4.js' %}"></script>
+    <script src="{% static 'js/modernizr-custom.js' %}"></script>
+    <script src="{% static 'js/ie-checker.js' %}"></script>
+    <script src="{% static 'js/swiper.min.js' %}"></script>
+    <script>
+        
+        // 배너 이미지 슬라이드
+        var swiper = new Swiper('.swiper-container',{
+            pagination: {
+                el: '.swiper-pagination',
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            autoplay: {
+                delay: 5000,
+            },
+        });
+        
+        // 단어순위 탭 메뉴
+        var movBtn = $(".wordata_title > ul > li");
+        var movCont = $(".wordata_chart > div");
+        
+        movCont.hide().eq(0).show();
+        
+        movBtn.click(function(e){
+            e.preventDefault();
+            var target = $(this);
+            var index = target.index();
+            movBtn.removeClass("active");
+            target.addClass("active");
+            movCont.css("display","none");
+            movCont.eq(index).css("display","block");
+        });
+    </script>
+    
+</body>
+</html>

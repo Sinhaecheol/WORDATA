@@ -18,6 +18,7 @@ from nltk.tokenize import WordPunctTokenizer
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 import zipfile
 import re
 import sys
@@ -82,6 +83,7 @@ def wordata(file, n, wordExcept = False, lenth = False):
     textHeap = []
 
     if FileName[-3:] == 'zip':
+        print("*Zip 파일을 입력 받습니다. ")
         FileName = getZip(FileName)
         FileName = getFiles(FileName)
         mode = 'Zip'
@@ -109,14 +111,14 @@ def wordata(file, n, wordExcept = False, lenth = False):
     for text in textHeap:
         TokenizedWords += tokenizer.tokenize(text)
     print("*문서 안의 전체 단어 개수: {}" .format(len(TokenizedWords))) 
-    
-    for file in FileName:
-        removeFolder(file)
+    if mode == 'Zip':
+        for file in FileName:
+            removeFolder(file)
 
     #불용어 load
     os.chdir(os.getcwd())
-    now_path = os.getcwd()
-    now_path = str(now_path) +'\\errorword'
+    system_path = os.getcwd()
+    now_path = str(system_path) +'\\errorword'
     errorWords = pd.read_csv(now_path + "\\errorWords.csv", header = None)
 
     stop_words = set(stopwords.words('english')) # NLTK에서 기본적으로 정의하고 있는 불용어
@@ -213,9 +215,47 @@ def wordata(file, n, wordExcept = False, lenth = False):
     print('{}개 이상의 빈도수 단어를 추출합니다.'.format(overNum))
     print("최종 단어 수 : {}" .format(removedOverlabWords['Word'].count()))
     
-    print('*단어장 형성을 시작합니다.')
+    
   
+    #그래프 생성
+    img_path = str(system_path) +'\\static\\img'
+
+    lenth_1 = 50
+    start = 50
+    if len(removedOverlabWords) < 50:
+        lenth_1 = len(removedOverlabWords)
+        start = 10
+    cumsum = (np.cumsum(removedOverlabWords['value count'][:50]).to_list()[-1]) * 1.2
+    count = removedOverlabWords['value count'].to_list()[0] *1.2
+
+    fig, ax1 = plt.subplots()
+    fig.set_size_inches(17, 10) #크기 바꾸기(inch 단위)
+
+    color = '#B0E0E6'
+    ax1.set_ylabel('', color='black', size=30)  # we already handled the x-label with ax1
+    ax1.bar(range(1,lenth_1+1), np.cumsum(removedOverlabWords['value count'][:lenth_1]), color=color, width=0.5, label='Cumsum')
+
+    ax2 = ax1.twinx()
+
+    matplotlib.rc('ytick', labelsize=25) 
+    matplotlib.rc('xtick', labelsize=30) 
+    color = '#5c3090'
+    ax2.set_ylabel(' ', color='black', size=30)
+    ax2.plot(range(1,lenth_1+1), removedOverlabWords['value count'][:lenth_1], color=color, label='Freqency',linewidth = 15)
+
+
+    lines, labels = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines + lines2, labels + labels2, prop={'size': 20})
+    ax2.set_ylim(start, count)
+    ax1.set_ylim(-20,cumsum)
+    plt.grid()
+    fig.tight_layout() 
+    fig.savefig(img_path + '\\graph.png') #현재 figure 저장하기
+    print('그래프 생성 완료')
+
    #lenth 파라미터를 받음
+    print('*단어장 형성을 시작합니다.')
     if lenth == False:
         WordsLenth = removedOverlabWords['Word'].to_list()
     else:
@@ -265,9 +305,19 @@ def wordata(file, n, wordExcept = False, lenth = False):
         if temp_num == 0:
             pass
         else:
-            if number == dataFrame.loc[len(dataFrame)-1][0]:
+            if  number == dataFrame.loc[len(dataFrame)-1][0]:
                 word_name = None
                 freq = None
+                number = None
+            
+            elif number > 2 and number == dataFrame.loc[len(dataFrame)-2][0]:
+                word_name = None
+                freq = None
+                number = None
+            elif number > 3 and number == dataFrame.loc[len(dataFrame)-3][0]:
+                word_name = None
+                freq = None
+                number = None
 
         words = soup.select(selecter[0]) #단어 뜻
         if len(words)==0:
@@ -289,6 +339,17 @@ def wordata(file, n, wordExcept = False, lenth = False):
             part = None
         else:
             part=parts[0].get_text().strip()
+
+        if part == '동사':
+            part = 'V'
+        elif part == '명사':
+            part = 'N'
+        elif part == '형용사':
+            part = 'adj'
+        elif part == '부사':
+            part = 'adv'
+        else:
+            pass
 
         voca = soup.select(selecter[4])#두번째 단어
         Words = voca[0].get_text().strip()
@@ -317,15 +378,15 @@ def userinputform(request):
         form = UserinputForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('main:home')
+            return redirect('analysis_text:form_list')
     else:
         form = UserinputForm()
     return render(request, 'analysis_text/userinputform.html', {'form': form})
 
-#업로드한 파일의 목록을 보여주는 함수
+#업로드한 파일을 보여주는 함수
 def form_list(request):
-    forms = Userinput.objects.all()
-    return render(request, 'analysis_text/form_list.html', {'forms': forms})
+    form = Userinput.objects.last()
+    return render(request, 'analysis_text/form_list.html', {'form': form})
 
 #업로드한 데이터를 전처리하고 완성된 데이터로 크롤링을 하는 함수
 #크롤링이 완료되면 단어장을 형성한다.
@@ -334,6 +395,9 @@ def dataframe(request, form_id):
     prewords = Dataframe.objects.all()
     prewords.delete() #가장 최근에 분석한 단어만 남긴다.
 
+    #Suneung
+    #Pyeonggawon
+    #Dataframe
     dataFrame = wordata(form.file, form.frequency, form.word_except, form.times)
     for i in range(len(dataFrame['단어'].to_list())):
         db_dataframe = Dataframe(
@@ -349,9 +413,6 @@ def dataframe(request, form_id):
 
     words = Dataframe.objects.all()        
     return render(request, 'analysis_text/dataframe.html', {'words': words})
-
-def wordlist(request):
-    return render(request, 'analysis_text/wordlist.html')
 
 #수능 파일을 분석한 단어를 보여주는 함수
 def suneung_words(request):
